@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>空島 Q 物語：8-bit 賢者試煉｜蒼穹星曆編年史</title>
+  <link rel="stylesheet" href="css/retro8bit.css" />
+</head>
+<body>
+  <div class="arcade-shell">
+    <!-- Top Command Bar -->
+    <header class="top-bar">
+      <div class="brand-wrap">
+        <div class="brand-emblem" aria-hidden="true">✦</div>
+        <div>
+          <h1 class="brand-title">空島 Q 物語：8-bit 賢者試煉</h1>
+          <p class="brand-sub">《蒼穹星曆》A.E. 01–04 歷史時間軸 × 七賢者交替視野物理動作合集</p>
+        </div>
+      </div>
+      <div class="top-controls">
+        <div id="globalProgressPill" class="stat-pill">★ 星數 0 | 時代通關 0/8 | 自由演武路線 0</div>
+        <button type="button" id="btnReturnHub" class="px-btn">🏠 星曆大廳</button>
+        <button type="button" id="btnOpenCodex" class="px-btn codex">📜 賢者列傳</button>
+        <button type="button" id="btnPlayHubBgm" class="px-btn">♪ 開啟 8-bit BGM</button>
+        <button type="button" id="btnToggleMute" class="px-btn">🔊 音效：開啟</button>
+        <button type="button" id="btnResetSave" class="px-btn danger">↺ 重置存檔</button>
+      </div>
+    </header>
+
+    <!-- Koei-Style Horizontal 《蒼穹星曆》 Chronology Timeline -->
+    <section id="chronicleSection" class="px-panel" aria-label="蒼穹星曆時間軸">
+      <div class="panel-heading">
+        <h2>⏳ 蒼穹星曆（Aetheria Era）編年史時間軸</h2>
+        <span class="hint">點擊時代節點切換紀元劇本（三大年號 × 四大天象季：曉雲・晴嵐・鎏金・玄星）</span>
+      </div>
+      <div class="chronicle-scroll">
+        <div id="eraRibbons" class="era-ribbons"></div>
+        <div id="timelineNodes" class="timeline-nodes"></div>
+      </div>
+    </section>
+
+    <!-- Era Synopsis & Koei-Style Character POV Selector -->
+    <section class="px-panel" aria-label="列傳視角選擇">
+      <div class="panel-heading">
+        <h2>⚔ 列傳視角選擇列（主線雙視角 × 自由演武模式）</h2>
+        <span class="hint">選擇出戰賢者以切換物理畫線特性、專屬 8-bit 戰術視野與獨立視角劇情</span>
+      </div>
+
+      <div id="stageBrief" class="stage-brief"></div>
+
+      <div class="pov-layout">
+        <div>
+          <div id="povRoster" class="pov-roster"></div>
+        </div>
+        <div id="povInspector" class="pov-inspector"></div>
+      </div>
+    </section>
+
+    <footer class="footer-note">
+      AETHERIA 8-BIT ARCADE ENGINE v1.0 • 100% 離線原生 HTML5 Canvas + Web Audio 晶片合成 • 支援桌面滑鼠與 iPad／手機觸控畫線 • localStorage 自動存檔
+    </footer>
+  </div>
+
+  <!-- 🎮 Playable Stage Arena Modal -->
+  <div id="stageModal" class="modal-overlay" role="dialog" aria-modal="true" aria-label="賢者試煉關卡">
+    <div class="modal-window">
+      <div class="modal-header">
+        <div>
+          <h3 id="stageModalTitle">Stage 1｜始源蒼穹與典籍開卷</h3>
+          <div id="stageModalEra" style="font-size:11px;color:#9fb3d9;margin-top:2px;">天啟元年・曉雲季（A.E. 01）</div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button type="button" id="btnStageRestart" class="px-btn primary">↺ 一鍵重開 [R]</button>
+          <button type="button" id="btnCloseStage" class="px-btn danger">✕ 返回時間軸</button>
+        </div>
+      </div>
+
+      <div id="stagePovBar" class="stage-pov-switch"></div>
+
+      <div class="canvas-stage-wrap">
+        <div class="stage-canvas-box">
+          <canvas id="stageCanvas" width="640" height="400"></canvas>
+          <div id="stageResultOverlay" class="stage-overlay-card">
+            <div id="stageResultTitle" class="stage-overlay-title">STAGE CLEAR!</div>
+            <div id="stageResultStars" class="stage-overlay-stars">★★★</div>
+            <div id="stageResultMeta" class="stage-overlay-meta"></div>
+            <div class="stage-overlay-actions">
+              <button type="button" id="btnOverlayReplay" class="px-btn">↺ 重玩刷新最少墨水</button>
+              <button type="button" id="btnOverlayNext" class="px-btn primary">▶ 下一時代節點</button>
+              <button type="button" id="btnOverlayHub" class="px-btn danger">返回大廳</button>
+            </div>
+          </div>
+        </div>
+        <div class="sandbox-side">
+          <div id="stageCharInfo"></div>
+          <div id="stageObjectiveBox" class="telemetry-box"></div>
+          <div id="stageLiveStatus" class="stage-status-pill">狀態準備中…</div>
+          <div id="stageTelemetry" class="telemetry-box"></div>
+          <div id="stageHintBox" style="border-top:1px solid #304578;padding-top:8px;color:#9fb3d9;line-height:1.5;font-size:11px;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 📜 光榮風「賢者列傳與劇本回想室」Modal -->
+  <div id="codexModal" class="modal-overlay" role="dialog" aria-modal="true" aria-label="賢者列傳圖鑑與劇本回想室">
+    <div class="modal-window">
+      <div class="modal-header">
+        <h3>📜 賢者列傳圖鑑與劇本回想室</h3>
+        <button type="button" id="btnCloseCodex" class="px-btn danger">✕ 關閉圖鑑 [ESC]</button>
+      </div>
+      <div class="codex-tabs">
+        <div class="codex-tab-btns">
+          <button type="button" id="btnCodexTabSages" class="px-btn primary">✦ 分頁一：七賢者列傳</button>
+          <button type="button" id="btnCodexTabReplay" class="px-btn">⏳ 分頁二：編年史劇本回想室</button>
+        </div>
+        <div id="codexSummaryPill" class="stat-pill">列傳解鎖率 0% (0/21)</div>
+      </div>
+      <div id="codexBody"></div>
+    </div>
+  </div>
+
+  <!-- 📜 KiriKiri VN Cutscene Modal -->
+  <div id="vnModal" class="modal-overlay" role="dialog" aria-modal="true" aria-label="吉里吉里過場演出">
+    <div class="modal-window">
+      <div class="modal-header">
+        <h3 id="vnModalTitle">吉里吉里過場演出</h3>
+        <button type="button" id="btnCloseVn" class="px-btn danger">✕ 關閉演出</button>
+      </div>
+      <div id="vnPreviewHost"></div>
+    </div>
+  </div>
+
+  <!-- Offline Script Bundle (100% file:// Ready, Zero External CDN / Zero CORS) -->
+  <script src="js/assets_bundle.js"></script>
+  <script src="js/audio_8bit.js"></script>
+  <script src="js/characters_pov.js"></script>
+  <script src="js/physics_q.js"></script>
+  <script src="js/kirikiri_vn.js"></script>
+  <script src="js/scripts_1_to_3.js"></script>
+  <script src="js/scripts_4_to_6.js"></script>
+  <script src="js/scripts_7_to_8.js"></script>
+  <script src="js/stages_1_to_3.js"></script>
+  <script src="js/stages_4_to_6.js"></script>
+  <script src="js/stages_7_to_8.js"></script>
+  <script src="js/codex_ui.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
